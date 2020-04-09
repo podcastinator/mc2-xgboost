@@ -352,6 +352,8 @@ struct WQSummary {
 
       out->size = 0;
       RType wsum = 0;
+      // FIXME: Leaks unique_count, which seems to be the summary size?
+      // equivalent to leaking the no. of unique elements
       for (size_t idx = 0; idx < unique_count; ++idx) {
         const RType w = qhelper[idx].entry.weight;
         out->data[out->size++] =
@@ -495,6 +497,7 @@ struct WQSummary {
     RType last_selected_entry_value = std::numeric_limits<RType>::min();
     size_t select_count = 0;
     for (size_t i = 1; i < items.size(); ++i) {
+      // FIXME: This line is not oblivious
       bool do_select = !items[i - 1].has_entry && items[i].has_entry &&
                        items[i].entry.value != last_selected_entry_value;
       ObliviousAssign(do_select, items[i].entry.value,
@@ -510,13 +513,17 @@ struct WQSummary {
 
     this->data[0] = src.data[0];
     this->size = 1 + select_count;
+    // FIXME: Leaks select_count
     std::transform(items.begin(), items.begin() + select_count, this->data + 1,
                    [](const Item &item) {
+                   // FIXME: This line is not oblivious
+                   // (But perhaps doesn't need to be)
                      CHECK(item.has_entry &&
                            item.rank == std::numeric_limits<RType>::min());
                      return item.entry;
                    });
 
+    // FIXME: This leaks information (?)
     // First and last ones are always kept in prune.
     if (data[size - 1].value != src.data[src.size - 1].value) {
       CHECK(size < maxsize);

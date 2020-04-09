@@ -69,6 +69,8 @@ void HistCutMatrix::Init(DMatrix* p_fmat, uint32_t max_num_bins) {
   // Use group index for weights?
   bool const use_group_ind = num_groups != 0 && weights.size() != info.num_row_;
 
+  // Rishabh: This path will only be taken if there are groups, which we don't support
+  // because they are specific to ranking task
   if (use_group_ind) {
     for (const auto &batch : p_fmat->GetRowBatches()) {
       size_t group_ind = this->SearchGroupIndFromBaseRow(group_ptr, batch.base_rowid);
@@ -184,6 +186,7 @@ void HistCutMatrix::Init
     a.SetPrune(summary_array[fid], max_num_bins);
     const bst_float mval = a.data[0].value;
     this->min_val[fid] = mval - (fabs(mval) + 1e-5);
+    // FIXME: Leaks size of a (summary size?)
     if (a.size > 1 && a.size <= 16) {
       /* specialized code categorial / ordinal data -- use midpoints */
       for (size_t i = 1; i < a.size; ++i) {
