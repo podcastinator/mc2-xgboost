@@ -166,6 +166,7 @@ void HistCutMatrix::Init
   std::vector<WXQSketch>& sketchs = *in_sketchs;
   constexpr int kFactor = 8;
   // gather the histogram data
+  // Rishabh: What does the reducer do?
   rabit::SerializeReducer<WXQSketch::SummaryContainer> sreducer;
   std::vector<WXQSketch::SummaryContainer> summary_array;
   summary_array.resize(sketchs.size());

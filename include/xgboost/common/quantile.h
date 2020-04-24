@@ -51,15 +51,19 @@ struct WQSummaryEntry {
   }
 
   // For bitonic sort/merge.
+  // TODO: Is this even used for bitonic sort? Doesn't look like it
+  // FIXME: Should use oblivious operator?
   inline bool operator<(const WQSummaryEntry &b) const {
     return value < b.value;
   }
 
+  // FIXME: Should use oblivious operator?
   inline bool operator==(const WQSummaryEntry &b) const {
     return value == b.value && rmin == b.rmin && rmax == b.rmax &&
            wmin == b.wmin;
   }
 
+  // FIXME: Should use oblivious operator?
   inline bool operator!=(const WQSummaryEntry &b) const {
     return !(*this == b);
   }
@@ -89,6 +93,7 @@ struct WQSummaryQEntry {
   // constructor
   WQSummaryQEntry(DType value, RType weight) : value(value), weight(weight) {}
   // comparator on value
+  // FIXME: Should use oblivious operator?
   inline bool operator<(const WQSummaryQEntry &b) const {
     return value < b.value;
   }
@@ -116,6 +121,7 @@ struct WQSummaryQEntryHelper {
   // ctor from entry
   explicit WQSummaryQEntryHelper(const QEntry &entry) : entry(entry), is_new(false) {}
   // comparator
+  // FIXME: Should use oblivious operator?
   inline bool operator<(const WQSummaryQEntryHelper &b) const {
     return entry < b.entry;
   }
@@ -352,7 +358,7 @@ struct WQSummary {
 
       out->size = 0;
       RType wsum = 0;
-      // FIXME: Leaks unique_count, which seems to be the summary size?
+      // FIXME: Leaks unique_count, which is the summary size
       // equivalent to leaking the no. of unique elements
       for (size_t idx = 0; idx < unique_count; ++idx) {
         const RType w = qhelper[idx].entry.weight;
@@ -513,7 +519,7 @@ struct WQSummary {
 
     this->data[0] = src.data[0];
     this->size = 1 + select_count;
-    // FIXME: Leaks select_count
+    // FIXME: Leaks select_count (but might not be a problem?)
     std::transform(items.begin(), items.begin() + select_count, this->data + 1,
                    [](const Item &item) {
                    // FIXME: This line is not oblivious
@@ -736,6 +742,7 @@ struct WQSummary {
     LOG(DEBUG) << __func__ << " PASSED 3" << std::endl;
 
     // Need to confirm shrink.
+    // FIXME: Leaks no. of unique elements in combined summary
     this->size -= duplicate_count;
 
     if (ObliviousDebugCheckEnabled()) {
@@ -891,6 +898,7 @@ struct WXQSummary : public WQSummary<DType, RType> {
   // constructor
   WXQSummary(Entry *data, size_t size) : WQSummary<DType, RType>(data, size) {}
   // check if the block is large chunk
+  // FIXME: Use oblivious operator?
   inline static bool CheckLarge(const Entry &e, RType chunk) {
     return e.RMinNext() > e.RMaxPrev() + chunk;
   }
