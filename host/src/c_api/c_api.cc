@@ -106,11 +106,12 @@ int XGDMatrixCreateFromEncryptedFile(const char *fnames[],
     safe_ecall(enclave_XGDMatrixCreateFromEncryptedFile(Enclave::getInstance().getEnclave(), &Enclave::getInstance().enclave_ret, (const char**) fnames, fname_lengths, usernames, username_lengths, num_files, silent, out));
 }
 
+XGB_DLL int XGDMatrixCreateFromDataIter(
+    void *data_handle,                  // a Java iterator
+    XGBCallbackDataIterNext *callback,  // C++ callback defined in xgboost4j.cpp
+    const char *cache_info, DMatrixHandle *out) {
+  LOG(FATAL) << "Not implemented";
 /*
- *XGB_DLL int XGDMatrixCreateFromDataIter(
- *    void *data_handle,                  // a Java iterator
- *    XGBCallbackDataIterNext *callback,  // C++ callback defined in xgboost4j.cpp
- *    const char *cache_info, DMatrixHandle *out) {
  *  API_BEGIN();
  *
  *  std::string scache;
@@ -126,159 +127,198 @@ int XGDMatrixCreateFromEncryptedFile(const char *fnames[],
  *    )
  *  };
  *  API_END();
- *}
- *
- *#ifndef XGBOOST_USE_CUDA
- *XGB_DLL int XGDMatrixCreateFromArrayInterfaceColumns(char const* c_json_strs,
- *                                                     bst_float missing,
- *                                                     int nthread,
- *                                                     DMatrixHandle* out) {
- *  API_BEGIN();
- *  common::AssertGPUSupport();
- *  API_END();
- *}
- *
- *XGB_DLL int XGDMatrixCreateFromArrayInterface(char const* c_json_strs,
- *                                              bst_float missing,
- *                                              int nthread,
- *                                              DMatrixHandle* out) {
- *  API_BEGIN();
- *  common::AssertGPUSupport();
- *  API_END();
- *}
- *
- *#endif
- *
- * // Create from data iterator
- *XGB_DLL int XGProxyDMatrixCreate(DMatrixHandle* out) {
- *  API_BEGIN();
- *  *out = new std::shared_ptr<xgboost::DMatrix>(new xgboost::data::DMatrixProxy);;
- *  API_END();
- *}
- *
- *XGB_DLL int
- *XGDeviceQuantileDMatrixSetDataCudaArrayInterface(DMatrixHandle handle,
- *                                                 char const *c_interface_str) {
- *  API_BEGIN();
- *  CHECK_HANDLE();
- *  auto p_m = static_cast<std::shared_ptr<xgboost::DMatrix> *>(handle);
- *  CHECK(p_m);
- *  auto m =   static_cast<xgboost::data::DMatrixProxy*>(p_m->get());
- *  CHECK(m) << "Current DMatrix type does not support set data.";
- *  m->SetData(c_interface_str);
- *  API_END();
- *}
- *
- *XGB_DLL int
- *XGDeviceQuantileDMatrixSetDataCudaColumnar(DMatrixHandle handle,
- *                                           char const *c_interface_str) {
- *  API_BEGIN();
- *  CHECK_HANDLE();
- *  auto p_m = static_cast<std::shared_ptr<xgboost::DMatrix> *>(handle);
- *  CHECK(p_m);
- *  auto m =   static_cast<xgboost::data::DMatrixProxy*>(p_m->get());
- *  CHECK(m) << "Current DMatrix type does not support set data.";
- *  m->SetData(c_interface_str);
- *  API_END();
- *}
- *
- *XGB_DLL int XGDeviceQuantileDMatrixCreateFromCallback(
- *    DataIterHandle iter, DMatrixHandle proxy, DataIterResetCallback *reset,
- *    XGDMatrixCallbackNext *next, float missing, int nthread,
- *    int max_bin, DMatrixHandle *out) {
- *  API_BEGIN();
- *  *out = new std::shared_ptr<xgboost::DMatrix>{
- *    xgboost::DMatrix::Create(iter, proxy, reset, next, missing, nthread, max_bin)};
- *  API_END();
- *}
- * // End Create from data iterator
- *
- *XGB_DLL int XGDMatrixCreateFromCSREx(const size_t* indptr,
- *                                     const unsigned* indices,
- *                                     const bst_float* data,
- *                                     size_t nindptr,
- *                                     size_t nelem,
- *                                     size_t num_col,
- *                                     DMatrixHandle* out) {
- *  API_BEGIN();
- *  data::CSRAdapter adapter(indptr, indices, data, nindptr - 1, nelem, num_col);
- *  *out = new std::shared_ptr<DMatrix>(DMatrix::Create(&adapter, std::nan(""), 1));
- *  API_END();
- *}
- *
- *XGB_DLL int XGDMatrixCreateFromCSCEx(const size_t* col_ptr,
- *                                     const unsigned* indices,
- *                                     const bst_float* data,
- *                                     size_t nindptr,
- *                                     size_t nelem,
- *                                     size_t num_row,
- *                                     DMatrixHandle* out) {
- *  API_BEGIN();
- *  data::CSCAdapter adapter(col_ptr, indices, data, nindptr - 1, num_row);
- *  *out = new std::shared_ptr<DMatrix>(DMatrix::Create(&adapter, std::nan(""), 1));
- *  API_END();
- *}
- *
- *XGB_DLL int XGDMatrixCreateFromMat(const bst_float* data,
- *                                   xgboost::bst_ulong nrow,
- *                                   xgboost::bst_ulong ncol, bst_float missing,
- *                                   DMatrixHandle* out) {
- *  API_BEGIN();
- *  data::DenseAdapter adapter(data, nrow, ncol);
- *  *out = new std::shared_ptr<DMatrix>(DMatrix::Create(&adapter, missing, 1));
- *  API_END();
- *}
- *
- *XGB_DLL int XGDMatrixCreateFromMat_omp(const bst_float* data,  // NOLINT
- *                                       xgboost::bst_ulong nrow,
- *                                       xgboost::bst_ulong ncol,
- *                                       bst_float missing, DMatrixHandle* out,
- *                                       int nthread) {
- *  API_BEGIN();
- *  data::DenseAdapter adapter(data, nrow, ncol);
- *  *out = new std::shared_ptr<DMatrix>(DMatrix::Create(&adapter, missing, nthread));
- *  API_END();
- *}
- *
- *XGB_DLL int XGDMatrixCreateFromDT(void** data, const char** feature_stypes,
- *                                  xgboost::bst_ulong nrow,
- *                                  xgboost::bst_ulong ncol, DMatrixHandle* out,
- *                                  int nthread) {
- *  API_BEGIN();
- *  data::DataTableAdapter adapter(data, feature_stypes, nrow, ncol);
- *  *out = new std::shared_ptr<DMatrix>(
- *      DMatrix::Create(&adapter, std::nan(""), nthread));
- *  API_END();
- *}
- *
- *XGB_DLL int XGDMatrixSliceDMatrix(DMatrixHandle handle,
- *                                  const int* idxset,
- *                                  xgboost::bst_ulong len,
- *                                  DMatrixHandle* out) {
- *  return XGDMatrixSliceDMatrixEx(handle, idxset, len, out, 0);
- *}
- *
- *XGB_DLL int XGDMatrixSliceDMatrixEx(DMatrixHandle handle,
- *                                    const int* idxset,
- *                                    xgboost::bst_ulong len,
- *                                    DMatrixHandle* out,
- *                                    int allow_groups) {
- *  API_BEGIN();
- *  CHECK_HANDLE();
- *  if (!allow_groups) {
- *    CHECK_EQ(static_cast<std::shared_ptr<DMatrix>*>(handle)
- *                 ->get()
- *                 ->Info()
- *                 .group_ptr_.size(),
- *             0U)
- *        << "slice does not support group structure";
- *  }
- *  DMatrix* dmat = static_cast<std::shared_ptr<DMatrix>*>(handle)->get();
- *  *out = new std::shared_ptr<DMatrix>(
- *      dmat->Slice({idxset, static_cast<std::size_t>(len)}));
- *  API_END();
- *}
  */
+}
+
+#ifndef XGBOOST_USE_CUDA
+XGB_DLL int XGDMatrixCreateFromArrayInterfaceColumns(char const* c_json_strs,
+                                                     bst_float missing,
+                                                     int nthread,
+                                                     DMatrixHandle* out) {
+  LOG(FATAL) << "Not implemented";
+  /*
+   *API_BEGIN();
+   *common::AssertGPUSupport();
+   *API_END();
+   */
+}
+
+XGB_DLL int XGDMatrixCreateFromArrayInterface(char const* c_json_strs,
+                                              bst_float missing,
+                                              int nthread,
+                                              DMatrixHandle* out) {
+  LOG(FATAL) << "Not implemented";
+  /*
+   *API_BEGIN();
+   *common::AssertGPUSupport();
+   *API_END();
+   */
+}
+
+#endif
+
+ // Create from data iterator
+XGB_DLL int XGProxyDMatrixCreate(DMatrixHandle* out) {
+  LOG(FATAL) << "Not implemented";
+  /*
+   *API_BEGIN();
+   **out = new std::shared_ptr<xgboost::DMatrix>(new xgboost::data::DMatrixProxy);;
+   *API_END();
+   */
+}
+
+XGB_DLL int
+XGDeviceQuantileDMatrixSetDataCudaArrayInterface(DMatrixHandle handle,
+                                                 char const *c_interface_str) {
+  LOG(FATAL) << "Not implemented";
+  /*
+   *API_BEGIN();
+   *CHECK_HANDLE();
+   *auto p_m = static_cast<std::shared_ptr<xgboost::DMatrix> *>(handle);
+   *CHECK(p_m);
+   *auto m =   static_cast<xgboost::data::DMatrixProxy*>(p_m->get());
+   *CHECK(m) << "Current DMatrix type does not support set data.";
+   *m->SetData(c_interface_str);
+   *API_END();
+   */
+}
+
+XGB_DLL int
+XGDeviceQuantileDMatrixSetDataCudaColumnar(DMatrixHandle handle,
+                                           char const *c_interface_str) {
+  LOG(FATAL) << "Not implemented";
+  /*
+   *API_BEGIN();
+   *CHECK_HANDLE();
+   *auto p_m = static_cast<std::shared_ptr<xgboost::DMatrix> *>(handle);
+   *CHECK(p_m);
+   *auto m =   static_cast<xgboost::data::DMatrixProxy*>(p_m->get());
+   *CHECK(m) << "Current DMatrix type does not support set data.";
+   *m->SetData(c_interface_str);
+   *API_END();
+   */
+}
+
+XGB_DLL int XGDeviceQuantileDMatrixCreateFromCallback(
+    DataIterHandle iter, DMatrixHandle proxy, DataIterResetCallback *reset,
+    XGDMatrixCallbackNext *next, float missing, int nthread,
+    int max_bin, DMatrixHandle *out) {
+  LOG(FATAL) << "Not implemented";
+  /*
+   *API_BEGIN();
+   **out = new std::shared_ptr<xgboost::DMatrix>{
+   *  xgboost::DMatrix::Create(iter, proxy, reset, next, missing, nthread, max_bin)};
+   *API_END();
+   */
+}
+ // End Create from data iterator
+
+XGB_DLL int XGDMatrixCreateFromCSREx(const size_t* indptr,
+                                     const unsigned* indices,
+                                     const bst_float* data,
+                                     size_t nindptr,
+                                     size_t nelem,
+                                     size_t num_col,
+                                     DMatrixHandle* out) {
+  LOG(FATAL) << "Not implemented";
+  /*
+   *API_BEGIN();
+   *data::CSRAdapter adapter(indptr, indices, data, nindptr - 1, nelem, num_col);
+   **out = new std::shared_ptr<DMatrix>(DMatrix::Create(&adapter, std::nan(""), 1));
+   *API_END();
+   */
+}
+
+XGB_DLL int XGDMatrixCreateFromCSCEx(const size_t* col_ptr,
+                                     const unsigned* indices,
+                                     const bst_float* data,
+                                     size_t nindptr,
+                                     size_t nelem,
+                                     size_t num_row,
+                                     DMatrixHandle* out) {
+  LOG(FATAL) << "Not implemented";
+  /*
+   *API_BEGIN();
+   *data::CSCAdapter adapter(col_ptr, indices, data, nindptr - 1, num_row);
+   **out = new std::shared_ptr<DMatrix>(DMatrix::Create(&adapter, std::nan(""), 1));
+   *API_END();
+   */
+}
+
+XGB_DLL int XGDMatrixCreateFromMat(const bst_float* data,
+                                   xgboost::bst_ulong nrow,
+                                   xgboost::bst_ulong ncol, bst_float missing,
+                                   DMatrixHandle* out) {
+  LOG(FATAL) << "Not implemented";
+  /*
+   *API_BEGIN();
+   *data::DenseAdapter adapter(data, nrow, ncol);
+   **out = new std::shared_ptr<DMatrix>(DMatrix::Create(&adapter, missing, 1));
+   *API_END();
+   */
+}
+
+XGB_DLL int XGDMatrixCreateFromMat_omp(const bst_float* data,  // NOLINT
+                                       xgboost::bst_ulong nrow,
+                                       xgboost::bst_ulong ncol,
+                                       bst_float missing, DMatrixHandle* out,
+                                       int nthread) {
+  LOG(FATAL) << "Not implemented";
+  /*
+   *API_BEGIN();
+   *data::DenseAdapter adapter(data, nrow, ncol);
+   **out = new std::shared_ptr<DMatrix>(DMatrix::Create(&adapter, missing, nthread));
+   *API_END();
+   */
+}
+
+XGB_DLL int XGDMatrixCreateFromDT(void** data, const char** feature_stypes,
+                                  xgboost::bst_ulong nrow,
+                                  xgboost::bst_ulong ncol, DMatrixHandle* out,
+                                  int nthread) {
+  LOG(FATAL) << "Not implemented";
+  /*
+   *API_BEGIN();
+   *data::DataTableAdapter adapter(data, feature_stypes, nrow, ncol);
+   **out = new std::shared_ptr<DMatrix>(
+   *    DMatrix::Create(&adapter, std::nan(""), nthread));
+   *API_END();
+   */
+}
+
+XGB_DLL int XGDMatrixSliceDMatrix(DMatrixHandle handle,
+                                  const int* idxset,
+                                  xgboost::bst_ulong len,
+                                  DMatrixHandle* out) {
+  LOG(FATAL) << "Not implemented";
+  /*
+   *return XGDMatrixSliceDMatrixEx(handle, idxset, len, out, 0);
+   */
+}
+
+XGB_DLL int XGDMatrixSliceDMatrixEx(DMatrixHandle handle,
+                                    const int* idxset,
+                                    xgboost::bst_ulong len,
+                                    DMatrixHandle* out,
+                                    int allow_groups) {
+  LOG(FATAL) << "Not implemented";
+  /*
+   *API_BEGIN();
+   *CHECK_HANDLE();
+   *if (!allow_groups) {
+   *  CHECK_EQ(static_cast<std::shared_ptr<DMatrix>*>(handle)
+   *               ->get()
+   *               ->Info()
+   *               .group_ptr_.size(),
+   *           0U)
+   *      << "slice does not support group structure";
+   *}
+   *DMatrix* dmat = static_cast<std::shared_ptr<DMatrix>*>(handle)->get();
+   **out = new std::shared_ptr<DMatrix>(
+   *    dmat->Slice({idxset, static_cast<std::size_t>(len)}));
+   *API_END();
+   */
+}
 
 XGB_DLL int XGDMatrixFree(DMatrixHandle handle) {
   safe_ecall(enclave_XGDMatrixFree(Enclave::getInstance().getEnclave(), &Enclave::getInstance().enclave_ret, handle));

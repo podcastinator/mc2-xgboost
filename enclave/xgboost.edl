@@ -80,13 +80,13 @@ enclave {
         public int enclave_XGDMatrixSetFloatInfo(
                 [in, string] char* handle,
                 [in, string] const char* field,
-                [in] const bst_float* info,
+                [in, count=len] const bst_float* info,
                 bst_ulong len);
 
         public int enclave_XGDMatrixSetUIntInfo(
                 [in, string] char* handle,
                 [in, string] const char* field,
-                [in] const unsigned* info,
+                [in, count=len] const unsigned* info,
                 bst_ulong len);
 
         public int enclave_XGDMatrixNumRow(
